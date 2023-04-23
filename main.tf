@@ -62,6 +62,61 @@ resource "aws_security_group" "web_access" {
   }
 }
 
+resource "aws_s3_bucket" "bucket_lambda" {
+  bucket = "tf-bucket-for-lambda-function"
+}
+
+resource "aws_s3_object" "object" {
+  bucket = aws_s3_bucket.bucket_lambda.id
+  key    = "lambda-function"
+  source = "lambda_hello_world_function.zip"
+}
+
+data "aws_iam_policy_document" "assume_role" {
+  statement {
+    effect = "Allow"
+
+    principals {
+      type        = "Service"
+      identifiers = ["lambda.amazonaws.com"]
+    }
+
+    actions = ["sts:AssumeRole"]
+  }
+}
+
+resource "aws_iam_role" "iam_for_lambda" {
+  name               = "LambdaS3Role"
+  assume_role_policy = data.aws_iam_policy_document.assume_role.json
+}
+
+resource "aws_iam_role_policy_attachment" "policy_lambda" {
+  role       = aws_iam_role.iam_for_lambda.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+}
+
+resource "aws_iam_role_policy_attachment" "policy_s3" {
+  role       = aws_iam_role.iam_for_lambda.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonS3FullAccess"
+}
+
+resource "aws_lambda_function" "lambda_hello_world_function" {
+  function_name = "hello-world"
+  role          = aws_iam_role.iam_for_lambda.arn
+  runtime       = "nodejs14.x"
+  s3_bucket     = aws_s3_bucket.bucket_lambda.id
+  s3_key        = aws_s3_object.object.key
+  handler       = "lambda_hello_world_function.handler"
+}
+
+resource "aws_lambda_permission" "lambda_with_alb" {
+  statement_id  = "AllowExecutionFromlb"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.lambda_hello_world_function.function_name
+  principal     = "elasticloadbalancing.amazonaws.com"
+  source_arn    = aws_lb_target_group.tg_alb.arn
+}
+
 resource "aws_lb_target_group" "tg_alb" {
   name        = var.tg_name
   port        = var.tg_alb_port
@@ -72,6 +127,8 @@ resource "aws_lb_target_group" "tg_alb" {
   health_check {
     path    = "/"
     matcher = "200"
+    timeout            = 10
+    interval           = 30
   }
 }
 
@@ -92,4 +149,10 @@ resource "aws_lb_listener" "alb_listener" {
     type             = var.alb_listener_default_action
     target_group_arn = aws_lb_target_group.tg_alb.arn
   }
+}
+
+resource "aws_lb_target_group_attachment" "lambda_alb_attach" {
+  target_group_arn = aws_lb_target_group.tg_alb.arn
+  target_id        = aws_lambda_function.lambda_hello_world_function.arn
+  depends_on       = [aws_lambda_permission.lambda_with_alb]
 }

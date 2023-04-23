@@ -45,31 +45,16 @@ resource "aws_security_group" "web_access" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
-
-  ingress {
-    description = "SSH ingress"
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
 }
 
 resource "aws_s3_bucket" "bucket_lambda" {
-  bucket = "tf-bucket-for-lambda-function"
+  bucket = var.bucket_name
 }
 
 resource "aws_s3_object" "object" {
   bucket = aws_s3_bucket.bucket_lambda.id
-  key    = "lambda-function"
-  source = "lambda_hello_world_function.zip"
+  key    = var.s3_object_key
+  source = var.s3_object_source
 }
 
 data "aws_iam_policy_document" "assume_role" {
@@ -77,16 +62,16 @@ data "aws_iam_policy_document" "assume_role" {
     effect = "Allow"
 
     principals {
-      type        = "Service"
-      identifiers = ["lambda.amazonaws.com"]
+      type        = var.policy_principal_type
+      identifiers = [var.policy_principal_identifier]
     }
 
-    actions = ["sts:AssumeRole"]
+    actions = [var.policy_actions]
   }
 }
 
 resource "aws_iam_role" "iam_for_lambda" {
-  name               = "LambdaS3Role"
+  name               = var.role_name
   assume_role_policy = data.aws_iam_policy_document.assume_role.json
 }
 
@@ -101,12 +86,12 @@ resource "aws_iam_role_policy_attachment" "policy_s3" {
 }
 
 resource "aws_lambda_function" "lambda_hello_world_function" {
-  function_name = "hello-world"
+  function_name = var.lambda_function_name
   role          = aws_iam_role.iam_for_lambda.arn
-  runtime       = "nodejs14.x"
+  runtime       = var.lambda_function_runtime
   s3_bucket     = aws_s3_bucket.bucket_lambda.id
   s3_key        = aws_s3_object.object.key
-  handler       = "lambda_hello_world_function.handler"
+  handler       = var.lambda_function_handler
 }
 
 resource "aws_lambda_permission" "lambda_with_alb" {

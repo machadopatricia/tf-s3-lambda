@@ -3,6 +3,62 @@ variable "region" {
   default = "us-east-1"
 }
 
+#### S3 BUCKET VARIABLES ####
+
+variable "bucket_name" {
+  type    = string
+  default = "tf-bucket-for-lambda-function"
+}
+
+variable "s3_object_key" {
+  type    = string
+  default = "lambda-function"
+}
+
+variable "s3_object_source" {
+  type    = string
+  default = "lambda_hello_world_function.zip"
+}
+
+#### IAM VARIABLES ####
+
+variable "policy_principal_type" {
+  type    = string
+  default = "Service"
+}
+
+variable "policy_principal_identifier" {
+  type    = string
+  default = "lambda.amazonaws.com"
+}
+
+variable "policy_actions" {
+  type    = string
+  default = "sts:AssumeRole"
+}
+
+variable "role_name" {
+  type    = string
+  default = "LambdaS3Role"
+}
+
+#### LAMBDA VARIABLES ####
+
+variable "lambda_function_name" {
+  type    = string
+  default = "hello-world"
+}
+
+variable "lambda_function_runtime" {
+  type    = string
+  default = "nodejs14.x"
+}
+
+variable "lambda_function_handler" {
+  type    = string
+  default = "lambda_hello_world_function.handler"
+}
+
 #### TARGET GROUP VARIABLES ####
 
 variable "tg_name" {

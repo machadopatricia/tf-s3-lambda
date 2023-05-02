@@ -13,7 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - run: sudo apt-get install zip
-      - run: zip lambda_hello_world_function.zip lambda_hello_world_function
+      - run: zip lambda_hello_world_function.zip lambda_hello_world_function.js
 
       # - uses: actions/setup-node@v3
       #   with:

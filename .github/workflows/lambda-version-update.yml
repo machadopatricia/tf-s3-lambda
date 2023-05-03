@@ -17,5 +17,7 @@ jobs:
         run: |
           sudo apt-get install zip
           zip lambda_hello_world_function.zip lambda_hello_world_function.js
-      - name: Copy Zip file to repo
+      - name: Delete previous function
+        run: rm $GITHUB_WORKSPACE/lambda_hello_world_function.zip
+      - name: Copy updated zipped function to repo
         run: cp -f lambda_hello_world_function.zip $GITHUB_WORKSPACE

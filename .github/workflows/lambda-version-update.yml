@@ -18,4 +18,4 @@ jobs:
           sudo apt-get install zip
           zip lambda_hello_world_function.zip lambda_hello_world_function.js
       - name: Copy Zip file to repo
-        run: cp lambda_hello_world_function.zip $GITHUB_WORKSPACE
+        run: cp -f lambda_hello_world_function.zip $GITHUB_WORKSPACE

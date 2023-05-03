@@ -2,7 +2,7 @@ exports.handler = async (event) => {
   const response = {
     statusCode: 200,
     headers: { 'Content-Type': 'text/html' },
-    body: '<h1>Hello, World! test 6: zipping file when it changes</h1>',
+    body: '<h1>Hello, World! test 7: zipping file when it changes</h1>',
   };
   return response;
 };

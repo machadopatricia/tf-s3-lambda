@@ -10,9 +10,11 @@ on:
 jobs:
   zip-updated-lambda-function:
     runs-on: ubuntu-latest
+    if: contains(github.event.head_commit.message, 'lambda-update')
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+
       - name: Zip the Lambda JS function
         run: |
           zip -v

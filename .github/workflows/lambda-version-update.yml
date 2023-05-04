@@ -25,10 +25,9 @@ jobs:
 
       - name: Build artifact
         run: |
-          pwd
-          ls -la
           mkdir -p artifact
           cp lambda_hello_world_function.zip $GITHUB_WORKSPACE/artifact/
+          cd artifact
           ls -la
 
       - name: Upload artifact

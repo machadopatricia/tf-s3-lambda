@@ -25,9 +25,7 @@ jobs:
 
       - name: Build artifact
         run: |
-          mkdir build/
-          cp lambda_hello_world_function.zip build/
-          cp -r build/* $GITHUB_WORKSPACE/artifact/
+          cp lambda_hello_world_function.zip $GITHUB_WORKSPACE/artifact/
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3.1.2

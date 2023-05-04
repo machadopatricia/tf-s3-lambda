@@ -25,7 +25,7 @@ jobs:
 
       - name: Build artifact
         run: |
-          mkdir build
+          mkdir build/
           cp lambda_hello_world_function.zip build/
           cp -r build/* $GITHUB_WORKSPACE/artifact/
 

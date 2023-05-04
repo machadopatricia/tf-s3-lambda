@@ -27,9 +27,11 @@ jobs:
         run: |
           mkdir -p $GITHUB_WORKSPACE/artifact
           cp lambda_hello_world_function.zip $GITHUB_WORKSPACE/artifact
+          pwd
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3.1.2
+        run: ls -la
         with:
           name: lambda-function
           path: $GITHUB_WORKSPACE/artifact/lambda_hello_world_function.zip

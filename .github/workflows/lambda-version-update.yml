@@ -29,8 +29,8 @@ jobs:
           cp lambda_hello_world_function.zip $GITHUB_WORKSPACE/artifact
 
       - name: List files in $GITHUB_WORKSPACE
-        run: ls -R $GITHUB_WORKSPACE
-        
+        run: ls -R $GITHUB_WORKSPACE/artifact
+
       - name: Upload artifact
         uses: actions/upload-artifact@v3.1.2
         with:

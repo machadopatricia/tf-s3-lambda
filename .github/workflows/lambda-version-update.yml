@@ -6,12 +6,18 @@ on:
       - main
 
 jobs:
-  zip-updated-lambda-function:
+  terraform:
+    name: "Terraform"
     runs-on: ubuntu-latest
     if: contains(github.event.head_commit.message, 'lambda-update')
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+
+      - name: HashiCorp - Setup Terraform
+        uses: hashicorp/setup-terraform@v2.0.3
+        with:
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
       - name: Zip the Lambda JS function
         run: |
@@ -23,16 +29,64 @@ jobs:
           fi
           zip lambda_hello_world_function.zip lambda_hello_world_function.js
 
-      - name: Build artifact
-        run: |
-          unzip -o lambda_hello_world_function.zip
-          cat lambda_hello_world_function.js
+      - name: Terraform Format
+        id: fmt
+        run: terraform fmt -check
 
-      #     mkdir -p $GITHUB_WORKSPACE/artifact
-      #     cp lambda_hello_world_function.zip $GITHUB_WORKSPACE/artifact
+      - name: Terraform Init
+        id: init
+        run: terraform init
 
-      # - name: Upload artifact
-      #   uses: actions/upload-artifact@v3.1.2
-      #   with:
-      #     name: lambda-function
-      #     path: /home/runner/work/tf-s3-lambda/tf-s3-lambda/artifact
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate -no-color
+
+      - name: Terraform Plan
+        id: plan
+        run: terraform plan -no-color -input=false
+
+      - name: Create Pull Request
+        uses: actions/github-script@v6
+        env:
+          PLAN: ${{ steps.plan.outputs.stdout }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const pr = await github.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: 'New pull request',
+              head: 'feature-branch',
+              base: 'main',
+              body: 'This is a new pull request.'
+            });
+
+            const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
+            #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
+            #### Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
+            #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
+
+            <details><summary>Show Plan</summary>
+
+            \`\`\`terraform\n
+            ${process.env.PLAN}
+            \`\`\`
+
+            </details>
+
+            *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            })
+
+      - name: Terraform Plan Status
+        if: steps.plan.outcome == 'failure'
+        run: exit 1
+
+      - name: Terraform Apply
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: terraform apply -auto-approve -input=false

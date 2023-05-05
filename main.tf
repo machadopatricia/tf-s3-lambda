@@ -58,9 +58,9 @@ resource "aws_s3_bucket" "bucket_lambda" {
 }
 
 resource "aws_s3_object" "object" {
-  bucket = aws_s3_bucket.bucket_lambda.id
-  key    = var.s3_object_key
-  source = var.s3_object_source
+  bucket      = aws_s3_bucket.bucket_lambda.id
+  key         = var.s3_object_key
+  source      = var.s3_object_source
   source_hash = filemd5(var.s3_object_source)
 }
 
@@ -100,7 +100,7 @@ resource "aws_lambda_function" "lambda_hello_world_function" {
   s3_key           = aws_s3_object.object.key
   handler          = var.lambda_function_handler
   source_code_hash = filebase64sha256(aws_s3_object.object.source)
-  publish = true
+  publish          = true
 }
 
 resource "aws_lambda_permission" "lambda_with_alb" {

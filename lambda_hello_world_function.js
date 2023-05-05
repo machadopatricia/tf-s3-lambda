@@ -2,7 +2,7 @@ exports.handler = async (event) => {
   const response = {
     statusCode: 200,
     headers: { 'Content-Type': 'text/html' },
-    body: '<h1>Hello, World! testing lambda versioning after setting publish to true</h1>',
+    body: '<h1>Hello, World! Upload new version of Lambda Function using Github Actions.</h1>',
   };
   return response;
 };
